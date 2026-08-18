@@ -3,7 +3,7 @@ const { mode="new", code, csrf, error, origin } = Astro.props;
 const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#8E6500",background:"#FFFFFF",error_correction:"M",version:1,logo_key:null};
 const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
 ---
-<form class="editor-grid" method="post" action={action} enctype="multipart/form-data" x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,level:values.error_correction,hasLogo:!!values.logo_key,origin})})`}>
+<form class="editor-grid" method="post" action={action} enctype="multipart/form-data" x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,level:values.error_correction,hasLogo:true,origin})})`}>
   <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="idempotency_key" value={crypto.randomUUID()}/><input type="hidden" name="version" value={values.version}/>
   <section class="form-card" aria-labelledby="details-title">
     <div class="section-head"><div><p class="step">01</p><h2 id="details-title">Destination and identity</h2></div><span class="status-dot">Saved securely</span></div>
@@ -15,7 +15,7 @@ const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
     <div class="section-head"><div><p class="step">02</p><h2>Brand styling</h2></div></div>
     <p class="alert">Zimaxx template: gold gradient, rounded locator eyes, softened modules, and a protected center for the logo.</p>
     <div class="color-grid"><label>Dark gold <span class="color-field"><input type="color" name="foreground" value={values.foreground} x-model="foreground"/><output x-text="foreground">{values.foreground}</output></span></label><label>Background <span class="color-field"><input type="color" name="background" value={values.background} x-model="background"/><output x-text="background">{values.background}</output></span></label></div>
-    <label>Zimaxx logo <input type="file" name="logo" accept="image/png" @change="hasLogo=$event.target.files.length>0"/><small>Transparent PNG recommended, up to 1 MB. The generator protects its center and automatically uses H correction.</small></label>
+    <label>Replace Zimaxx logo <input type="file" name="logo" accept="image/png"/><small>The official Zimaxx symbol is included automatically. Optionally replace it with a transparent PNG up to 1 MB.</small></label>
     <label>Error correction <select name="error_correction" x-model="level" :disabled="hasLogo"><option value="L">L · 7%</option><option value="M">M · 15%</option><option value="Q">Q · 25%</option><option value="H">H · 30%</option></select><input x-show="hasLogo" type="hidden" name="error_correction" value="H"/><small x-show="hasLogo">Raised to H because a logo is present.</small></label>
     <div class="form-actions"><a class="button secondary" href="/codes">Cancel</a><button class="button primary" type="submit">{mode === "new" ? "Create code" : "Save changes"}</button></div>
   </section>

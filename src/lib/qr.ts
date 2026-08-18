@@ -38,7 +38,7 @@ export async function qrSvg(value: string, style: QrStyle, size = 1024) {
   const startColor = normalizeHex(style.foreground);
   const endColor = zimaxxGradientEnd(startColor);
   const background = normalizeHex(style.background);
-  const level = effectiveErrorCorrection(style.errorCorrection, !!style.logo);
+  const level = effectiveErrorCorrection(style.errorCorrection, true);
   const model = QRCode.create(value, { errorCorrectionLevel: level });
   const modules = model.modules.size;
   const margin = 4;
@@ -56,17 +56,17 @@ export async function qrSvg(value: string, style: QrStyle, size = 1024) {
   const eyes = [[0, 0], [modules - 7, 0], [0, modules - 7]]
     .map(([col, row]) => svgFinderEye(col, row, margin, unit, background))
     .join("");
-  const logo = style.logo?.length ? svgLogo(style.logo, size, background) : "";
+  const logo = style.logo?.length ? svgLogo(style.logo, size, background) : svgZimaxxLogo(size, background);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Zimaxx dynamic QR code"><defs><linearGradient id="zimaxx-gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${startColor}"/><stop offset="1" stop-color="${endColor}"/></linearGradient></defs><rect width="${size}" height="${size}" fill="${background}"/>${parts.join("")}${eyes}${logo}</svg>`;
 
-  return { svg, check: scannability(endColor, background, !!style.logo), level };
+  return { svg, check: scannability(endColor, background, true), level };
 }
 
 export async function qrPng(value: string, style: QrStyle, size = 2048): Promise<Uint8Array> {
   const startColor = hexToRgb(normalizeHex(style.foreground));
   const endColor = hexToRgb(zimaxxGradientEnd(style.foreground));
   const background = hexToRgb(normalizeHex(style.background));
-  const model = QRCode.create(value, { errorCorrectionLevel: effectiveErrorCorrection(style.errorCorrection, !!style.logo) });
+  const model = QRCode.create(value, { errorCorrectionLevel: effectiveErrorCorrection(style.errorCorrection, true) });
   const modules = model.modules.size;
   const scale = Math.max(1, Math.floor(size / (modules + 8)));
   const qrSize = (modules + 8) * scale;
@@ -88,6 +88,7 @@ export async function qrPng(value: string, style: QrStyle, size = 2048): Promise
   drawFinderEye(pixels, size, origin, origin + (modules - 7) * scale, scale, background, startColor, endColor);
 
   if (style.logo?.length) compositeLogo(pixels, size, style.logo, background);
+  else drawZimaxxLogo(pixels, size, background);
   return encode({ width: size, height: size, data: pixels, channels: 4, depth: 8 });
 }
 
@@ -107,6 +108,18 @@ function svgLogo(bytes: Uint8Array, size: number, background: string) {
   const x = (size - box) / 2;
   const pad = Math.round(size * 0.018);
   return `<rect x="${x - pad}" y="${x - pad}" width="${box + pad * 2}" height="${box + pad * 2}" rx="${pad}" fill="${background}"/><image href="data:image/png;base64,${b64}" x="${x}" y="${x}" width="${box}" height="${box}" preserveAspectRatio="xMidYMid meet"/>`;
+}
+
+function svgZimaxxLogo(size: number, background: string) {
+  const box = Math.round(size * 0.18);
+  const x = (size - box) / 2;
+  const pad = Math.round(size * 0.018);
+  const scale = box / 1206;
+  const point = (sourceX: number, sourceY: number) => `${fmt(x + (sourceX - 397) * scale)},${fmt(x + (sourceY - 397) * scale)}`;
+  const center = [point(1000,397),point(1117,510),point(1117,1490),point(1000,1603),point(888,1490),point(888,510)].join(" ");
+  const left = [point(637,760),point(397,1000),point(637,1240)].join(" ");
+  const right = [point(1368,760),point(1603,1000),point(1368,1240)].join(" ");
+  return `<rect x="${x-pad}" y="${x-pad}" width="${box+pad*2}" height="${box+pad*2}" rx="${pad}" fill="${background}"/><g fill="#B18700"><polygon points="${center}"/><polygon points="${left}"/><polygon points="${right}"/></g>`;
 }
 
 function drawFinderEye(pixels: Uint8Array, size: number, x: number, y: number, scale: number, background: Rgb, start: Rgb, end: Rgb) {
@@ -136,6 +149,38 @@ function compositeLogo(pixels: Uint8Array, size: number, bytes: Uint8Array, back
       pixels[dest + 3] = 255;
     }
   }
+}
+
+function drawZimaxxLogo(pixels: Uint8Array, size: number, background: Rgb) {
+  const box = Math.round(size * 0.18);
+  const start = Math.floor((size - box) / 2);
+  const pad = Math.round(size * 0.022);
+  const scale = box / 1206;
+  const point = (sourceX: number, sourceY: number): [number, number] => [start + (sourceX - 397) * scale, start + (sourceY - 397) * scale];
+  fillRoundedRect(pixels, size, start - pad, start - pad, box + pad * 2, box + pad * 2, pad, background, background);
+  const gold: Rgb = [177, 135, 0];
+  fillPolygon(pixels, size, [point(1000,397),point(1117,510),point(1117,1490),point(1000,1603),point(888,1490),point(888,510)], gold);
+  fillPolygon(pixels, size, [point(637,760),point(397,1000),point(637,1240)], gold);
+  fillPolygon(pixels, size, [point(1368,760),point(1603,1000),point(1368,1240)], gold);
+}
+
+function fillPolygon(pixels: Uint8Array, size: number, points: Array<[number, number]>, color: Rgb) {
+  const minY = Math.max(0, Math.floor(Math.min(...points.map((point) => point[1]))));
+  const maxY = Math.min(size - 1, Math.ceil(Math.max(...points.map((point) => point[1]))));
+  for (let y = minY; y <= maxY; y++) {
+    const intersections: number[] = [];
+    for (let i = 0, previous = points.length - 1; i < points.length; previous = i++) {
+      const [x1, y1] = points[previous], [x2, y2] = points[i];
+      if ((y1 > y) !== (y2 > y)) intersections.push(x1 + (y - y1) * (x2 - x1) / (y2 - y1));
+    }
+    intersections.sort((a, b) => a - b);
+    for (let i = 0; i + 1 < intersections.length; i += 2) for (let x = Math.max(0, Math.ceil(intersections[i])); x <= Math.min(size - 1, Math.floor(intersections[i + 1])); x++) setSolidPixel(pixels, size, x, y, color);
+  }
+}
+
+function setSolidPixel(pixels: Uint8Array, size: number, x: number, y: number, color: Rgb) {
+  const offset = (y * size + x) * 4;
+  pixels[offset] = color[0]; pixels[offset + 1] = color[1]; pixels[offset + 2] = color[2]; pixels[offset + 3] = 255;
 }
 
 function fillCanvas(pixels: Uint8Array, size: number, color: Rgb) {
