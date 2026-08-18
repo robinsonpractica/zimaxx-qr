@@ -1,7 +1,7 @@
 # Zimaxx QR
 
 Zimaxx QR is Zimmax's focused owner workspace for dynamic QR codes. A printed short
-URL stays permanent while its destination, colors, logo, and active state can
+URL stays permanent while its destination, colors, and active state can
 change. The app records privacy-minimal daily scan counts and exports branded
 PNG or SVG artwork suitable for production printing.
 
@@ -10,7 +10,7 @@ PNG or SVG artwork suitable for production printing.
 - Astro 5 server rendering on Cloudflare Workers
 - HTMX for status mutations and Alpine.js for local form/search interactions
 - Cloudflare D1 for owners, sessions, codes, redirect history, scans, and audit
-- Cloudflare R2 for uploaded PNG logos
+- Integrated Zimaxx logo artwork with no external object storage
 - PBKDF2 password hashes, opaque hashed sessions, CSRF tokens, owner-scoped SQL
 - Structured request logs and `/health` database readiness checks
 
@@ -42,9 +42,10 @@ remove these demo accounts before any public production launch.
 
 Copy `.env.example` to `.dev.vars` for local overrides. In production, set
 `PUBLIC_APP_ORIGIN` to the canonical HTTPS origin before printing any code.
-The `DB` D1, `SESSION` KV, and `LOGOS` R2 bindings are declared in
-`wrangler.jsonc`. Before deployment, create the R2 bucket and change
-`PUBLIC_APP_ORIGIN` from localhost to the final canonical HTTPS origin.
+The `DB` D1 and `SESSION` KV bindings are declared in `wrangler.jsonc`. The
+official Zimaxx symbol is generated directly into each SVG and PNG, so no R2
+bucket or file upload is required. Before printing a final code, set
+`PUBLIC_APP_ORIGIN` to the canonical HTTPS origin.
 
 ## Production provisioning
 
@@ -67,7 +68,7 @@ terminal.
 Forward migrations live in `db/migrations` and are append-only. Apply them with
 `wrangler d1 migrations apply zimaxx-qr --remote` after taking a backup.
 The matching emergency rollback reference is in `db/rollback`; it is destructive
-and should only be used against a confirmed target after exporting D1 and R2.
+and should only be used against a confirmed target after exporting D1.
 
 Operational cleanup is in `db/maintenance/retention.sql`. Schedule it daily or
 run it manually to remove expired/revoked sessions and scan events older than
@@ -80,10 +81,10 @@ Before a release:
 wrangler d1 export zimaxx-qr --remote --output backup.sql
 ```
 
-Back up the `zimaxx-qr-logos` bucket with an R2-compatible tool. Restore D1 to
-a fresh database with `wrangler d1 execute <database> --remote --file backup.sql`,
-verify `/health`, then switch the binding. Restore R2 objects using the same
-keys stored in `codes.logo_key`.
+Restore D1 to a fresh database with
+`wrangler d1 execute <database> --remote --file backup.sql`, verify `/health`,
+then switch the binding. The integrated logo ships with the application and
+requires no separate backup.
 
 ## Validation
 
@@ -116,6 +117,6 @@ and responsive desktop/mobile journeys.
 
 The first release intentionally omits teams, billing, bulk import, custom
 domains, scheduled destination changes, precise geolocation, webhooks, and
-third-party analytics. SVG and PNG are supported; logo uploads are PNG in this
-slice. These constraints keep the permanent-link workflow reliable and easy to
-operate.
+third-party analytics or custom logo uploads. SVG and PNG exports always use
+the integrated Zimaxx symbol. These constraints keep the permanent-link
+workflow reliable and easy to operate.

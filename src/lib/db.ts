@@ -35,20 +35,20 @@ export async function getCode(db: D1Database, ownerId: string, id: string): Prom
   return db.prepare(`SELECT c.*,r.destination_url,COUNT(s.id) AS total_scans FROM codes c JOIN redirect_rules r ON r.code_id=c.id AND r.valid_to IS NULL LEFT JOIN scan_events s ON s.code_id=c.id WHERE c.owner_id=? AND c.id=? GROUP BY c.id`).bind(ownerId, id).first<CodeRecord>();
 }
 
-export async function createCode(db: D1Database, input: { ownerId: string; name: string; slug: string; destination: string; foreground: string; background: string; errorCorrection: ErrorCorrection; logoKey?: string; logoType?: string; idempotencyKey: string; }) {
+export async function createCode(db: D1Database, input: { ownerId: string; name: string; slug: string; destination: string; foreground: string; background: string; errorCorrection: ErrorCorrection; idempotencyKey: string; }) {
   const now = new Date().toISOString(); const id = newId("code"); const ruleId = newId("rr"); const auditId = newId("aud");
   await db.batch([
-    db.prepare("INSERT INTO codes(id,owner_id,name,slug,foreground,background,error_correction,logo_key,logo_content_type,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'active',?,?)").bind(id,input.ownerId,input.name,input.slug,input.foreground,input.background,input.errorCorrection,input.logoKey??null,input.logoType??null,now,now),
+    db.prepare("INSERT INTO codes(id,owner_id,name,slug,foreground,background,error_correction,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,'active',?,?)").bind(id,input.ownerId,input.name,input.slug,input.foreground,input.background,input.errorCorrection,now,now),
     db.prepare("INSERT INTO redirect_rules(id,code_id,revision,destination_url,valid_from,changed_by,created_at) VALUES(?,?,1,?,?,?,?)").bind(ruleId,id,input.destination,now,input.ownerId,now),
     db.prepare("INSERT INTO audit_log(id,owner_id,code_id,action,idempotency_key,metadata_json,created_at) VALUES(?,?,?,'code.created',?,'{}',?)").bind(auditId,input.ownerId,id,input.idempotencyKey,now),
   ]);
   return id;
 }
 
-export async function updateCode(db: D1Database, current: CodeRecord, input: { ownerId: string; name: string; destination: string; foreground: string; background: string; errorCorrection: ErrorCorrection; expectedVersion: number; idempotencyKey: string; logoKey?: string; logoType?: string; }) {
+export async function updateCode(db: D1Database, current: CodeRecord, input: { ownerId: string; name: string; destination: string; foreground: string; background: string; errorCorrection: ErrorCorrection; expectedVersion: number; idempotencyKey: string; }) {
   const now = new Date().toISOString(); const changedDestination = current.destination_url !== input.destination;
   const statements = [
-    db.prepare("UPDATE codes SET name=?,foreground=?,background=?,error_correction=?,logo_key=COALESCE(?,logo_key),logo_content_type=COALESCE(?,logo_content_type),version=version+1,updated_at=? WHERE id=? AND owner_id=? AND version=? AND status!='archived'").bind(input.name,input.foreground,input.background,input.errorCorrection,input.logoKey??null,input.logoType??null,now,current.id,input.ownerId,input.expectedVersion),
+    db.prepare("UPDATE codes SET name=?,foreground=?,background=?,error_correction=?,version=version+1,updated_at=? WHERE id=? AND owner_id=? AND version=? AND status!='archived'").bind(input.name,input.foreground,input.background,input.errorCorrection,now,current.id,input.ownerId,input.expectedVersion),
   ];
   if (changedDestination) {
     const revision = await db.prepare("SELECT MAX(revision) AS revision FROM redirect_rules WHERE code_id=?").bind(current.id).first<{ revision: number }>();

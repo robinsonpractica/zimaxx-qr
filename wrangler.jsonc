@@ -6,7 +6,6 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "dist", "binding": "ASSETS" },
   "d1_databases": [{ "binding": "DB", "database_name": "zimaxx-qr", "database_id": "cd4f7a07-9b3e-44c3-b339-337de82ef6d9", "migrations_dir": "db/migrations" }],
-  "r2_buckets": [{ "binding": "LOGOS", "bucket_name": "zimaxx-qr-logos" }],
   "kv_namespaces": [{ "binding": "SESSION", "id": "a66e7b65f19049b8937225690bdd6ee8" }],
-  "vars": { "PUBLIC_APP_ORIGIN": "http://localhost:8787" }
+  "vars": {}
 }

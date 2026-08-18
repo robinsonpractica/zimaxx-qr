@@ -1,9 +1,9 @@
 ---
 const { mode="new", code, csrf, error, origin } = Astro.props;
-const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#8E6500",background:"#FFFFFF",error_correction:"M",version:1,logo_key:null};
+const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#8E6500",background:"#FFFFFF",error_correction:"H",version:1};
 const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
 ---
-<form class="editor-grid" method="post" action={action} enctype="multipart/form-data" x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,level:values.error_correction,hasLogo:true,origin})})`}>
+<form class="editor-grid" method="post" action={action} x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,origin})})`}>
   <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="idempotency_key" value={crypto.randomUUID()}/><input type="hidden" name="version" value={values.version}/>
   <section class="form-card" aria-labelledby="details-title">
     <div class="section-head"><div><p class="step">01</p><h2 id="details-title">Destination and identity</h2></div><span class="status-dot">Saved securely</span></div>
@@ -15,15 +15,15 @@ const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
     <div class="section-head"><div><p class="step">02</p><h2>Brand styling</h2></div></div>
     <p class="alert">Zimaxx template: gold gradient, rounded locator eyes, softened modules, and a protected center for the logo.</p>
     <div class="color-grid"><label>Dark gold <span class="color-field"><input type="color" name="foreground" value={values.foreground} x-model="foreground"/><output x-text="foreground">{values.foreground}</output></span></label><label>Background <span class="color-field"><input type="color" name="background" value={values.background} x-model="background"/><output x-text="background">{values.background}</output></span></label></div>
-    <label>Replace Zimaxx logo <input type="file" name="logo" accept="image/png"/><small>The official Zimaxx symbol is included automatically. Optionally replace it with a transparent PNG up to 1 MB.</small></label>
-    <label>Error correction <select name="error_correction" x-model="level" :disabled="hasLogo"><option value="L">L · 7%</option><option value="M">M · 15%</option><option value="Q">Q · 25%</option><option value="H">H · 30%</option></select><input x-show="hasLogo" type="hidden" name="error_correction" value="H"/><small x-show="hasLogo">Raised to H because a logo is present.</small></label>
+    <label>Official logo <input value="Zimaxx symbol · included automatically" disabled/><small>The integrated Zimaxx symbol is used on every QR, with no external file storage required.</small></label>
+    <label>Error correction <input value="H · 30%" disabled/><input type="hidden" name="error_correction" value="H"/><small>Fixed at the highest correction level to protect scanning around the center logo.</small></label>
     <div class="form-actions"><a class="button secondary" href="/codes">Cancel</a><button class="button primary" type="submit">{mode === "new" ? "Create code" : "Save changes"}</button></div>
   </section>
-  <aside class="preview-card" aria-labelledby="preview-title"><div class="preview-top"><div><p class="eyebrow">Live preview</p><h2 id="preview-title">Ready to scan</h2></div><span class="badge active">Dynamic</span></div><div class="preview-wrap"><img :src="previewUrl" src={`/qr/preview.svg?slug=${encodeURIComponent(values.slug||"preview")}&fg=${values.foreground.slice(1)}&bg=${values.background.slice(1)}&level=${values.error_correction}`} alt="Live QR code preview" width="320" height="320"/></div><div class="check" :class="contrast >= 4.5 ? 'pass' : 'warn'"><strong x-text="contrast >= 4.5 ? '✓ Strong contrast' : '⚠ Low contrast'">✓ Strong contrast</strong><span x-text="`Ratio ${contrast.toFixed(1)}:1`"></span></div><dl><div><dt>Encoded URL</dt><dd x-text="`${new URL(origin).host}/r/${slug||'preview'}`"></dd></div><div><dt>Correction</dt><dd x-text="hasLogo ? 'H · 30%' : level"></dd></div></dl></aside>
+  <aside class="preview-card" aria-labelledby="preview-title"><div class="preview-top"><div><p class="eyebrow">Live preview</p><h2 id="preview-title">Ready to scan</h2></div><span class="badge active">Dynamic</span></div><div class="preview-wrap"><img :src="previewUrl" src={`/qr/preview.svg?slug=${encodeURIComponent(values.slug||"preview")}&fg=${values.foreground.slice(1)}&bg=${values.background.slice(1)}&level=H`} alt="Live QR code preview" width="320" height="320"/></div><div class="check" :class="contrast >= 4.5 ? 'pass' : 'warn'"><strong x-text="contrast >= 4.5 ? '✓ Strong contrast' : '⚠ Low contrast'">✓ Strong contrast</strong><span x-text="`Ratio ${contrast.toFixed(1)}:1`"></span></div><dl><div><dt>Encoded URL</dt><dd x-text="`${new URL(origin).host}/r/${slug||'preview'}`"></dd></div><div><dt>Correction</dt><dd>H · 30%</dd></div></dl></aside>
 </form>
 <script is:inline define:vars={{origin}}>
   window.codeEditor=(initial)=>({ ...initial,
-    get previewUrl(){return `/qr/preview.svg?slug=${encodeURIComponent(this.slug||'preview')}&fg=${this.foreground.slice(1)}&bg=${this.background.slice(1)}&level=${this.hasLogo?'H':this.level}`},
+    get previewUrl(){return `/qr/preview.svg?slug=${encodeURIComponent(this.slug||'preview')}&fg=${this.foreground.slice(1)}&bg=${this.background.slice(1)}&level=H`},
     get gradientEnd(){const rgb=[1,3,5].map(i=>parseInt(this.foreground.slice(i,i+2),16)),target=[184,134,11];return '#'+rgb.map((v,i)=>Math.round(v+(target[i]-v)*.25).toString(16).padStart(2,'0')).join('')},
     get contrast(){const lum=(hex)=>{const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]},b=lum(this.background),ratio=(hex)=>{const a=lum(hex);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)};return Math.min(ratio(this.foreground),ratio(this.gradientEnd))}
   });

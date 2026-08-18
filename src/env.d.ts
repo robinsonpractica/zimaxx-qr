@@ -10,7 +10,6 @@ declare namespace App {
 
 interface Env {
   DB: D1Database;
-  LOGOS: R2Bucket;
   SESSION?: KVNamespace;
   PUBLIC_APP_ORIGIN?: string;
   ASSETS?: Fetcher;

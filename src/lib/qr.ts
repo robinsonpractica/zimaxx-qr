@@ -1,26 +1,14 @@
 import QRCode from "qrcode";
-import { convertIndexedToRgb, decode, encode, type DecodedPng } from "fast-png";
+import { encode } from "fast-png";
 import { effectiveErrorCorrection, normalizeHex, scannability, type ErrorCorrection } from "./domain";
 
 export interface QrStyle {
   foreground: string;
   background: string;
   errorCorrection: ErrorCorrection;
-  logo?: Uint8Array | null;
-  logoMime?: string | null;
 }
 
 type Rgb = [number, number, number];
-
-export function validateLogoPng(bytes: Uint8Array) {
-  try {
-    const png = decode(bytes, { checkCrc: true });
-    if (png.width < 1 || png.height < 1 || png.width > 2048 || png.height > 2048) throw new Error();
-    return png;
-  } catch {
-    throw new Error("Logo is not a valid PNG image.");
-  }
-}
 
 /** A restrained second gold keeps the branded gradient readable in print. */
 export function zimaxxGradientEnd(foreground: string) {
@@ -56,7 +44,7 @@ export async function qrSvg(value: string, style: QrStyle, size = 1024) {
   const eyes = [[0, 0], [modules - 7, 0], [0, modules - 7]]
     .map(([col, row]) => svgFinderEye(col, row, margin, unit, background))
     .join("");
-  const logo = style.logo?.length ? svgLogo(style.logo, size, background) : svgZimaxxLogo(size, background);
+  const logo = svgZimaxxLogo(size, background);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Zimaxx dynamic QR code"><defs><linearGradient id="zimaxx-gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${startColor}"/><stop offset="1" stop-color="${endColor}"/></linearGradient></defs><rect width="${size}" height="${size}" fill="${background}"/>${parts.join("")}${eyes}${logo}</svg>`;
 
   return { svg, check: scannability(endColor, background, true), level };
@@ -87,8 +75,7 @@ export async function qrPng(value: string, style: QrStyle, size = 2048): Promise
   drawFinderEye(pixels, size, origin + (modules - 7) * scale, origin, scale, background, startColor, endColor);
   drawFinderEye(pixels, size, origin, origin + (modules - 7) * scale, scale, background, startColor, endColor);
 
-  if (style.logo?.length) compositeLogo(pixels, size, style.logo, background);
-  else drawZimaxxLogo(pixels, size, background);
+  drawZimaxxLogo(pixels, size, background);
   return encode({ width: size, height: size, data: pixels, channels: 4, depth: 8 });
 }
 
@@ -100,14 +87,6 @@ function svgFinderEye(col: number, row: number, margin: number, unit: number, ba
   const x = (col + margin) * unit;
   const y = (row + margin) * unit;
   return `<rect x="${fmt(x)}" y="${fmt(y)}" width="${fmt(unit * 7)}" height="${fmt(unit * 7)}" rx="${fmt(unit * 1.05)}" fill="url(#zimaxx-gold)"/><rect x="${fmt(x + unit)}" y="${fmt(y + unit)}" width="${fmt(unit * 5)}" height="${fmt(unit * 5)}" rx="${fmt(unit * 0.72)}" fill="${background}"/><circle cx="${fmt(x + unit * 3.5)}" cy="${fmt(y + unit * 3.5)}" r="${fmt(unit * 1.5)}" fill="url(#zimaxx-gold)"/>`;
-}
-
-function svgLogo(bytes: Uint8Array, size: number, background: string) {
-  const b64 = uint8ToBase64(bytes);
-  const box = Math.round(size * 0.18);
-  const x = (size - box) / 2;
-  const pad = Math.round(size * 0.018);
-  return `<rect x="${x - pad}" y="${x - pad}" width="${box + pad * 2}" height="${box + pad * 2}" rx="${pad}" fill="${background}"/><image href="data:image/png;base64,${b64}" x="${x}" y="${x}" width="${box}" height="${box}" preserveAspectRatio="xMidYMid meet"/>`;
 }
 
 function svgZimaxxLogo(size: number, background: string) {
@@ -126,29 +105,6 @@ function drawFinderEye(pixels: Uint8Array, size: number, x: number, y: number, s
   fillRoundedRect(pixels, size, x, y, scale * 7, scale * 7, Math.round(scale * 1.05), start, end);
   fillRoundedRect(pixels, size, x + scale, y + scale, scale * 5, scale * 5, Math.round(scale * 0.72), background, background);
   fillCircle(pixels, size, x + scale * 3.5, y + scale * 3.5, scale * 1.5, start, end);
-}
-
-function compositeLogo(pixels: Uint8Array, size: number, bytes: Uint8Array, background: Rgb) {
-  const logo = toRgba(decode(bytes));
-  const maxBox = Math.round(size * 0.18);
-  const ratio = Math.min(maxBox / logo.width, maxBox / logo.height);
-  const width = Math.max(1, Math.round(logo.width * ratio));
-  const height = Math.max(1, Math.round(logo.height * ratio));
-  const startX = Math.floor((size - width) / 2);
-  const startY = Math.floor((size - height) / 2);
-  const pad = Math.round(size * 0.022);
-  fillRoundedRect(pixels, size, startX - pad, startY - pad, width + pad * 2, height + pad * 2, pad, background, background);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const sx = Math.min(logo.width - 1, Math.floor(x * logo.width / width));
-      const sy = Math.min(logo.height - 1, Math.floor(y * logo.height / height));
-      const source = (sy * logo.width + sx) * 4;
-      const dest = ((startY + y) * size + startX + x) * 4;
-      const alpha = logo.data[source + 3] / 255;
-      for (let channel = 0; channel < 3; channel++) pixels[dest + channel] = Math.round(logo.data[source + channel] * alpha + pixels[dest + channel] * (1 - alpha));
-      pixels[dest + 3] = 255;
-    }
-  }
 }
 
 function drawZimaxxLogo(pixels: Uint8Array, size: number, background: Rgb) {
@@ -219,10 +175,3 @@ function setGradientPixel(pixels: Uint8Array, size: number, x: number, y: number
 function hexToRgb(hex: string): Rgb { return [Number.parseInt(hex.slice(1, 3), 16), Number.parseInt(hex.slice(3, 5), 16), Number.parseInt(hex.slice(5, 7), 16)]; }
 function rgbToHex([r, g, b]: Rgb) { return `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("").toUpperCase()}`; }
 function fmt(value: number) { return Number(value.toFixed(3)); }
-function uint8ToBase64(bytes: Uint8Array) { let binary = ""; for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(binary); }
-
-function toRgba(image: DecodedPng) {
-  const indexed = image.palette ? convertIndexedToRgb(image) : image.data, channels = image.palette?.[0]?.length ?? image.channels, max = image.depth === 16 ? 65535 : 255, out = new Uint8Array(image.width * image.height * 4);
-  for (let p = 0; p < image.width * image.height; p++) { const i = p * channels, o = p * 4, get = (n: number) => Math.round(Number(indexed[i + n] ?? 0) * 255 / max); if (channels === 1) { out[o] = out[o + 1] = out[o + 2] = get(0); out[o + 3] = 255; } else if (channels === 2) { out[o] = out[o + 1] = out[o + 2] = get(0); out[o + 3] = get(1); } else { out[o] = get(0); out[o + 1] = get(1); out[o + 2] = get(2); out[o + 3] = channels === 4 ? get(3) : 255; } }
-  return { width: image.width, height: image.height, data: out };
-}
