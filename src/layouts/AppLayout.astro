@@ -14,7 +14,7 @@ const { title = "Codes", current = "codes", user, csrf } = Astro.props;
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="topbar">
-      <a class="brand" href="/codes" aria-label="Zimaxx QR home"><span aria-hidden="true">Z</span> Zimaxx QR</a>
+      <a class="brand" href="/codes" aria-label="Zimaxx QR home"><img class="brand-logo" src="/zimaxx-white.png" alt="Zimaxx Perfumes" width="1450" height="322"/></a>
       <nav aria-label="Primary navigation">
         <a class:list={[{active: current === "codes"}]} href="/codes">Codes</a>
         <a class:list={[{active: current === "analytics"}]} href="/analytics">Analytics</a>
