@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS audit_log;
+DROP TABLE IF EXISTS scan_events;
+DROP TABLE IF EXISTS redirect_rules;
+DROP TABLE IF EXISTS codes;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS users;

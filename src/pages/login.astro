@@ -1,0 +1,11 @@
+---
+import "../styles/global.css";
+import { currentIdentity, login } from "../lib/auth";
+let error="";
+if(await currentIdentity(Astro)) return Astro.redirect("/codes");
+if(Astro.request.method==="POST"){
+  const form=await Astro.request.formData(); const email=String(form.get("email")||""); const password=String(form.get("password")||"");
+  const identity=await login(Astro,email,password); if(identity) return Astro.redirect("/codes"); error="That email and password did not match an active account.";
+}
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>Sign in · Squarecode</title></head><body class="auth-body"><main class="auth-shell"><section class="auth-brand"><a class="brand" href="/login"><span>▦</span> Squarecode</a><h1>Keep every printed code current.</h1><p>Editable destinations, print-ready exports, and privacy-friendly scan counts—without the clutter.</p><div class="auth-proof"><span>✓ No scan cookies</span><span>✓ No precise location</span><span>✓ No IP storage</span></div></section><section class="auth-card"><p class="eyebrow">Owner access</p><h2>Welcome back</h2><p>Sign in to manage your codes.</p>{Astro.url.searchParams.get("reason")==="expired"&&<div class="alert" role="status">Your session expired. Sign in again.</div>}{error&&<div class="alert error" role="alert">{error}</div>}<form method="post"><label>Email<input name="email" type="email" required autocomplete="username" value="maya@squarecode.test"/></label><label>Password<input name="password" type="password" required minlength="8" autocomplete="current-password" value="demo1234"/></label><button class="button primary" type="submit">Sign in</button></form><small>Demo: maya@squarecode.test / demo1234</small></section></main></body></html>

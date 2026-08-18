@@ -1,0 +1,2 @@
+import type { APIRoute } from "astro"; import { currentIdentity, logout, validCsrf } from "../lib/auth";
+export const POST:APIRoute=async(context)=>{const identity=await currentIdentity(context);if(identity){const form=await context.request.formData();if(!validCsrf(context.request,identity.session,form))return new Response("Invalid request",{status:403});}await logout(context);return context.redirect("/login",303)};

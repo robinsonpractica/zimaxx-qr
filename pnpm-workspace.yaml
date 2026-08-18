@@ -1,0 +1,9 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/workers-types@5.20260818.1'
+nodeLinker: hoisted
+confirmModulesPurge: false
+packageImportMethod: copy

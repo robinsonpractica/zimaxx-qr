@@ -1,0 +1,37 @@
+{
+  "name": "squarecode",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build && node scripts/prepare-sites.mjs",
+    "preview": "wrangler dev",
+    "db:migrate": "wrangler d1 migrations apply squarecode --local",
+    "db:seed": "wrangler d1 execute squarecode --local --file=./db/seed.sql",
+    "test": "vitest run && playwright test",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.7",
+    "alpinejs": "^3.14.9",
+    "astro": "^5.13.5",
+    "fast-png": "^8.0.0",
+    "htmx.org": "^2.0.7",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@cloudflare/workers-types": "^5.20260818.1",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.5",
+    "jsqr": "^1.4.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.31.0"
+  }
+}

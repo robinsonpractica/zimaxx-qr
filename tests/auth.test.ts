@@ -1,0 +1,2 @@
+import{expect,it}from"vitest";import{verifyPassword}from"../src/lib/auth";
+it("verifies the seeded PBKDF2 password without exposing it",async()=>{expect(await verifyPassword("demo1234","squarecode-demo-salt","bf29c72bfae440d10835852633cde83759e9ed85726ebf761881a3e6851115a4")).toBe(true);expect(await verifyPassword("wrong-pass","squarecode-demo-salt","bf29c72bfae440d10835852633cde83759e9ed85726ebf761881a3e6851115a4")).toBe(false)});

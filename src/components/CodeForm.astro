@@ -1,0 +1,28 @@
+---
+const { mode="new", code, csrf, error, origin } = Astro.props;
+const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#173B35",background:"#FFFFFF",error_correction:"M",version:1,logo_key:null};
+const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
+---
+<form class="editor-grid" method="post" action={action} enctype="multipart/form-data" x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,level:values.error_correction,hasLogo:!!values.logo_key,origin})})`}>
+  <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="idempotency_key" value={crypto.randomUUID()}/><input type="hidden" name="version" value={values.version}/>
+  <section class="form-card" aria-labelledby="details-title">
+    <div class="section-head"><div><p class="step">01</p><h2 id="details-title">Destination and identity</h2></div><span class="status-dot">Saved securely</span></div>
+    {error && <div class="alert error" role="alert">{error}</div>}
+    <label>Name <input required maxlength="120" name="name" value={values.name} placeholder="e.g. Summer menu"/></label>
+    <label>Destination URL <input required maxlength="2048" type="url" name="destination" value={values.destination_url} inputmode="url" placeholder="https://example.com/menu"/><small>You can change this after printing. The QR image will stay the same.</small></label>
+    <label>Short link <span class="input-prefix"><span>{new URL(origin).host}/r/</span><input required minlength="3" maxlength="64" pattern="[a-z0-9-]+" name="slug" value={values.slug} x-model="slug" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"/></span><small>{mode === "new" ? "Choose carefully—this becomes permanent when printed." : "The printed short link cannot be changed."}</small></label>
+    <div class="section-rule"></div>
+    <div class="section-head"><div><p class="step">02</p><h2>Brand styling</h2></div></div>
+    <div class="color-grid"><label>Foreground <span class="color-field"><input type="color" name="foreground" value={values.foreground} x-model="foreground"/><output x-text="foreground">{values.foreground}</output></span></label><label>Background <span class="color-field"><input type="color" name="background" value={values.background} x-model="background"/><output x-text="background">{values.background}</output></span></label></div>
+    <label>Centered logo <input type="file" name="logo" accept="image/png" @change="hasLogo=$event.target.files.length>0"/><small>Optional PNG, up to 1 MB. Logo codes automatically use H correction.</small></label>
+    <label>Error correction <select name="error_correction" x-model="level" :disabled="hasLogo"><option value="L">L · 7%</option><option value="M">M · 15%</option><option value="Q">Q · 25%</option><option value="H">H · 30%</option></select><input x-show="hasLogo" type="hidden" name="error_correction" value="H"/><small x-show="hasLogo">Raised to H because a logo is present.</small></label>
+    <div class="form-actions"><a class="button secondary" href="/codes">Cancel</a><button class="button primary" type="submit">{mode === "new" ? "Create code" : "Save changes"}</button></div>
+  </section>
+  <aside class="preview-card" aria-labelledby="preview-title"><div class="preview-top"><div><p class="eyebrow">Live preview</p><h2 id="preview-title">Ready to scan</h2></div><span class="badge active">Dynamic</span></div><div class="preview-wrap"><img :src="previewUrl" src={`/qr/preview.svg?slug=${encodeURIComponent(values.slug||"preview")}&fg=${values.foreground.slice(1)}&bg=${values.background.slice(1)}&level=${values.error_correction}`} alt="Live QR code preview" width="320" height="320"/></div><div class="check" :class="contrast >= 4.5 ? 'pass' : 'warn'"><strong x-text="contrast >= 4.5 ? '✓ Strong contrast' : '⚠ Low contrast'">✓ Strong contrast</strong><span x-text="`Ratio ${contrast.toFixed(1)}:1`"></span></div><dl><div><dt>Encoded URL</dt><dd x-text="`${new URL(origin).host}/r/${slug||'preview'}`"></dd></div><div><dt>Correction</dt><dd x-text="hasLogo ? 'H · 30%' : level"></dd></div></dl></aside>
+</form>
+<script is:inline define:vars={{origin}}>
+  window.codeEditor=(initial)=>({ ...initial,
+    get previewUrl(){return `/qr/preview.svg?slug=${encodeURIComponent(this.slug||'preview')}&fg=${this.foreground.slice(1)}&bg=${this.background.slice(1)}&level=${this.hasLogo?'H':this.level}`},
+    get contrast(){const lum=(hex)=>{const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]},a=lum(this.foreground),b=lum(this.background);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)}
+  });
+</script>

@@ -1,0 +1,32 @@
+---
+import "../styles/global.css";
+const { title = "Codes", current = "codes", user, csrf } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Branded, editable QR codes with privacy-friendly analytics." />
+    <title>{title} · Squarecode</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="topbar">
+      <a class="brand" href="/codes" aria-label="Squarecode home"><span aria-hidden="true">▦</span> Squarecode</a>
+      <nav aria-label="Primary navigation">
+        <a class:list={[{active: current === "codes"}]} href="/codes">Codes</a>
+        <a class:list={[{active: current === "analytics"}]} href="/analytics">Analytics</a>
+      </nav>
+      {user && <div class="account"><span class="avatar">{user.display_name.split(/\s+/).map((part:string)=>part[0]).join("").slice(0,2)}</span><span>{user.email}</span><form method="post" action="/logout"><input type="hidden" name="csrf" value={csrf}/><button class="quiet" type="submit">Sign out</button></form></div>}
+    </header>
+    <main id="main"><slot /></main>
+  </body>
+</html>
+<script>
+  import htmx from "htmx.org";
+  import Alpine from "alpinejs";
+  (window as any).htmx = htmx;
+  (window as any).Alpine = Alpine;
+  Alpine.start();
+</script>
