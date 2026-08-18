@@ -1,5 +1,5 @@
 {
-  "name": "squarecode",
+  "name": "zimaxx-qr",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,14 +7,16 @@
     "dev": "astro dev",
     "build": "astro check && astro build && node scripts/prepare-sites.mjs",
     "preview": "wrangler dev",
-    "db:migrate": "wrangler d1 migrations apply squarecode --local",
-    "db:seed": "wrangler d1 execute squarecode --local --file=./db/seed.sql",
+    "db:migrate": "wrangler d1 migrations apply zimaxx-qr --local",
+    "db:seed": "wrangler d1 execute zimaxx-qr --local --file=./db/seed.sql",
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.7",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "alpinejs": "^3.14.9",
     "astro": "^5.13.5",
     "fast-png": "^8.0.0",

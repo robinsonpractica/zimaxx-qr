@@ -6,7 +6,7 @@ export interface CodeRecord { id: string; owner_id: string; name: string; slug: 
 
 export function envFrom(locals: App.Locals): Env {
   const env = locals.runtime?.env;
-  if (!env?.DB) throw new Error("Squarecode database binding is unavailable.");
+  if (!env?.DB) throw new Error("Zimaxx QR database binding is unavailable.");
   return env;
 }
 

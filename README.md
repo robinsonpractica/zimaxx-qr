@@ -1,6 +1,6 @@
-# Squarecode
+# Zimaxx QR
 
-Squarecode is a focused owner workspace for dynamic QR codes. A printed short
+Zimaxx QR is Zimmax's focused owner workspace for dynamic QR codes. A printed short
 URL stays permanent while its destination, colors, logo, and active state can
 change. The app records privacy-minimal daily scan counts and exports branded
 PNG or SVG artwork suitable for production printing.
@@ -32,8 +32,8 @@ pnpm run preview -- --port 8787
 
 Open `http://localhost:8787/login` and use either seeded owner:
 
-- `maya@squarecode.test` / `demo1234`
-- `noah@squarecode.test` / `demo1234`
+- `demo@zimmax.test` / `demo1234`
+- `qa@zimmax.test` / `demo1234`
 
 The second owner exists specifically to verify tenant isolation. Replace or
 remove these demo accounts before any public production launch.
@@ -49,7 +49,7 @@ Wrangler deployments.
 ## Database lifecycle
 
 Forward migrations live in `db/migrations` and are append-only. Apply them with
-`wrangler d1 migrations apply squarecode --remote` after taking a backup.
+`wrangler d1 migrations apply zimaxx-qr --remote` after taking a backup.
 The matching emergency rollback reference is in `db/rollback`; it is destructive
 and should only be used against a confirmed target after exporting D1 and R2.
 
@@ -61,10 +61,10 @@ kept because they explain what a permanent printed code did over time.
 Before a release:
 
 ```bash
-wrangler d1 export squarecode --remote --output backup.sql
+wrangler d1 export zimaxx-qr --remote --output backup.sql
 ```
 
-Back up the `squarecode-logos` bucket with an R2-compatible tool. Restore D1 to
+Back up the `zimaxx-qr-logos` bucket with an R2-compatible tool. Restore D1 to
 a fresh database with `wrangler d1 execute <database> --remote --file backup.sql`,
 verify `/health`, then switch the binding. Restore R2 objects using the same
 keys stored in `codes.logo_key`.

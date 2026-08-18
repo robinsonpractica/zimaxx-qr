@@ -30,7 +30,7 @@ export function normalizeDestination(value: string, redirectOrigin?: string): st
   }
   if (redirectOrigin) {
     const origin = new URL(redirectOrigin);
-    if (url.host === origin.host && /^\/r\//.test(url.pathname)) throw new DomainError("redirect_loop", "A Squarecode redirect cannot target another Squarecode redirect.");
+    if (url.host === origin.host && /^\/r\//.test(url.pathname)) throw new DomainError("redirect_loop", "A Zimaxx QR redirect cannot target another Zimaxx QR redirect.");
   }
   url.hash = "";
   return url.toString();

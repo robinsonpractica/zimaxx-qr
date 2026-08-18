@@ -7,13 +7,14 @@ const { title = "Codes", current = "codes", user, csrf } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="description" content="Branded, editable QR codes with privacy-friendly analytics." />
-    <title>{title} · Squarecode</title>
+    <meta name="description" content="Zimaxx QR: dynamic, branded QR codes with privacy-friendly analytics." />
+    <link rel="icon" href="/favicon.svg" />
+    <title>{title} · Zimaxx QR</title>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <header class="topbar">
-      <a class="brand" href="/codes" aria-label="Squarecode home"><span aria-hidden="true">▦</span> Squarecode</a>
+      <a class="brand" href="/codes" aria-label="Zimaxx QR home"><span aria-hidden="true">Z</span> Zimaxx QR</a>
       <nav aria-label="Primary navigation">
         <a class:list={[{active: current === "codes"}]} href="/codes">Codes</a>
         <a class:list={[{active: current === "analytics"}]} href="/analytics">Analytics</a>

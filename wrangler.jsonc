@@ -1,12 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "squarecode",
+  "name": "zimaxx-qr",
   "main": "dist/_worker.js/index.js",
   "compatibility_date": "2026-08-18",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "dist", "binding": "ASSETS" },
-  "d1_databases": [{ "binding": "DB", "database_name": "squarecode", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "db/migrations" }],
-  "r2_buckets": [{ "binding": "LOGOS", "bucket_name": "squarecode-logos" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "zimaxx-qr", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "db/migrations" }],
+  "r2_buckets": [{ "binding": "LOGOS", "bucket_name": "zimaxx-qr-logos" }],
   "kv_namespaces": [{ "binding": "SESSION", "id": "00000000000000000000000000000000" }],
   "vars": { "PUBLIC_APP_ORIGIN": "http://localhost:8787" }
 }

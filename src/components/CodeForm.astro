@@ -1,6 +1,6 @@
 ---
 const { mode="new", code, csrf, error, origin } = Astro.props;
-const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#173B35",background:"#FFFFFF",error_correction:"M",version:1,logo_key:null};
+const values = code ?? {name:"",slug:"",destination_url:"https://",foreground:"#000000",background:"#FFFFFF",error_correction:"M",version:1,logo_key:null};
 const action = mode === "new" ? "/codes/new" : `/codes/${values.id}/edit`;
 ---
 <form class="editor-grid" method="post" action={action} enctype="multipart/form-data" x-data={`codeEditor(${JSON.stringify({slug:values.slug,foreground:values.foreground,background:values.background,level:values.error_correction,hasLogo:!!values.logo_key,origin})})`}>
