@@ -59,7 +59,9 @@ pnpm owner:create -- --remote
 ```
 
 The owner command requires a password of at least 12 characters, hashes it
-locally with PBKDF2-SHA256, and sends only the resulting SQL values to D1. The
+locally with PBKDF2-SHA256 using Cloudflare's supported 100,000 iterations, and
+sends only the resulting SQL values to D1. Running it again for the same email
+updates that owner's password without creating a duplicate. The
 plain-text password is neither written to the repository nor displayed in the
 terminal.
 

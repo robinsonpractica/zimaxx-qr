@@ -8,7 +8,7 @@ async function sha256(value: string) { return hex(await crypto.subtle.digest("SH
 
 export async function verifyPassword(password: string, salt: string, expected: string) {
   const material = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
-  const derived = hex(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode(salt),iterations:120000}, material, 256));
+  const derived = hex(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode(salt),iterations:100000}, material, 256));
   let diff = derived.length ^ expected.length; for (let i=0;i<Math.min(derived.length,expected.length);i++) diff |= derived.charCodeAt(i)^expected.charCodeAt(i); return diff===0;
 }
 

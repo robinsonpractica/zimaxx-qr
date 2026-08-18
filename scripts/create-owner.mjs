@@ -46,10 +46,10 @@ if (password !== confirmation) throw new Error("Passwords do not match.");
 
 const escapeSql = (value) => value.replaceAll("'", "''");
 const salt = randomBytes(24).toString("hex");
-const hash = pbkdf2Sync(password, salt, 120000, 32, "sha256").toString("hex");
+const hash = pbkdf2Sync(password, salt, 100000, 32, "sha256").toString("hex");
 const id = `usr_${randomUUID().replaceAll("-", "")}`;
 const now = new Date().toISOString();
-const sql = `INSERT INTO users(id,email,display_name,password_salt,password_hash,status,created_at,updated_at) VALUES('${id}','${escapeSql(email)}','${escapeSql(displayName)}','${salt}','${hash}','active','${now}','${now}');\n`;
+const sql = `INSERT INTO users(id,email,display_name,password_salt,password_hash,status,created_at,updated_at) VALUES('${id}','${escapeSql(email)}','${escapeSql(displayName)}','${salt}','${hash}','active','${now}','${now}') ON CONFLICT(email) DO UPDATE SET display_name=excluded.display_name,password_salt=excluded.password_salt,password_hash=excluded.password_hash,status='active',updated_at=excluded.updated_at;\n`;
 const temporary = mkdtempSync(join(tmpdir(), "zimaxx-owner-"));
 const sqlPath = join(temporary, "owner.sql");
 writeFileSync(sqlPath, sql, { encoding: "utf8", mode: 0o600 });
@@ -57,4 +57,4 @@ const wranglerCli = join(root, "node_modules", "wrangler", "bin", "wrangler.js")
 const command = spawnSync(process.execPath, [wranglerCli, "d1", "execute", "zimaxx-qr", "--remote", "--file", sqlPath], { cwd: root, stdio: "inherit" });
 rmSync(temporary, { recursive: true, force: true });
 if (command.status !== 0) process.exit(command.status ?? 1);
-console.log(`Production owner created: ${email}`);
+console.log(`Production owner ready: ${email}`);
