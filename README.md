@@ -42,9 +42,25 @@ remove these demo accounts before any public production launch.
 
 Copy `.env.example` to `.dev.vars` for local overrides. In production, set
 `PUBLIC_APP_ORIGIN` to the canonical HTTPS origin before printing any code.
-The `DB` D1 and `LOGOS` R2 bindings are declared in `wrangler.jsonc`; replace
-the placeholder resource IDs with real Cloudflare resources for direct
-Wrangler deployments.
+The `DB` D1, `SESSION` KV, and `LOGOS` R2 bindings are declared in
+`wrangler.jsonc`. Before deployment, create the R2 bucket and change
+`PUBLIC_APP_ORIGIN` from localhost to the final canonical HTTPS origin.
+
+## Production provisioning
+
+Do not run `db/seed.sql` against production. After creating the Cloudflare
+resources, apply only the migrations and create the first real owner through
+the private terminal prompt:
+
+```bash
+pnpm exec wrangler d1 migrations apply zimaxx-qr --remote
+pnpm owner:create -- --remote
+```
+
+The owner command requires a password of at least 12 characters, hashes it
+locally with PBKDF2-SHA256, and sends only the resulting SQL values to D1. The
+plain-text password is neither written to the repository nor displayed in the
+terminal.
 
 ## Database lifecycle
 
