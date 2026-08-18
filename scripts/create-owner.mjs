@@ -53,10 +53,8 @@ const sql = `INSERT INTO users(id,email,display_name,password_salt,password_hash
 const temporary = mkdtempSync(join(tmpdir(), "zimaxx-owner-"));
 const sqlPath = join(temporary, "owner.sql");
 writeFileSync(sqlPath, sql, { encoding: "utf8", mode: 0o600 });
-const wrangler = join(root, "node_modules", ".bin", process.platform === "win32" ? "wrangler.cmd" : "wrangler");
-const command = process.platform === "win32"
-  ? spawnSync("cmd.exe", ["/d", "/s", "/c", `"${wrangler}" d1 execute zimaxx-qr --remote --file "${sqlPath}"`], { cwd: root, stdio: "inherit" })
-  : spawnSync(wrangler, ["d1", "execute", "zimaxx-qr", "--remote", "--file", sqlPath], { cwd: root, stdio: "inherit" });
+const wranglerCli = join(root, "node_modules", "wrangler", "bin", "wrangler.js");
+const command = spawnSync(process.execPath, [wranglerCli, "d1", "execute", "zimaxx-qr", "--remote", "--file", sqlPath], { cwd: root, stdio: "inherit" });
 rmSync(temporary, { recursive: true, force: true });
 if (command.status !== 0) process.exit(command.status ?? 1);
 console.log(`Production owner created: ${email}`);
