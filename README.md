@@ -1,6 +1,6 @@
 # Zimaxx QR
 
-Zimaxx QR is Zimmax's focused owner workspace for dynamic QR codes. A printed short
+Zimaxx QR is Zimmax's shared team workspace for dynamic QR codes. A printed short
 URL stays permanent while its destination, colors, and active state can
 change. The app records privacy-minimal daily scan counts and exports branded
 PNG or SVG artwork suitable for production printing.
@@ -9,9 +9,9 @@ PNG or SVG artwork suitable for production printing.
 
 - Astro 5 server rendering on Cloudflare Workers
 - HTMX for status mutations and Alpine.js for local form/search interactions
-- Cloudflare D1 for owners, sessions, codes, redirect history, scans, and audit
+- Cloudflare D1 for users, roles, sessions, codes, redirect history, scans, and audit
 - Integrated Zimaxx logo artwork with no external object storage
-- PBKDF2 password hashes, opaque hashed sessions, CSRF tokens, owner-scoped SQL
+- PBKDF2 password hashes, opaque hashed sessions, CSRF tokens, and server-side roles
 - Structured request logs and `/health` database readiness checks
 
 The public redirect hot path is `GET /r/:slug`. It reads the current redirect
@@ -30,13 +30,14 @@ pnpm run db:seed
 pnpm run preview -- --port 8787
 ```
 
-Open `http://localhost:8787/login` and use either seeded owner:
+Open `http://localhost:8787/login` and use either seeded team account:
 
 - `demo@zimmax.test` / `demo1234`
 - `qa@zimmax.test` / `demo1234`
 
-The second owner exists specifically to verify tenant isolation. Replace or
-remove these demo accounts before any public production launch.
+The first account is an administrator and the second is an editor. Both work
+with the same Zimaxx QR workspace. Replace or remove these demo accounts before
+any public production launch.
 
 ## Configuration
 
@@ -50,18 +51,19 @@ bucket or file upload is required. Before printing a final code, set
 ## Production provisioning
 
 Do not run `db/seed.sql` against production. After creating the Cloudflare
-resources, apply only the migrations and create the first real owner through
-the private terminal prompt:
+resources, apply only the migrations and create real users through the private
+terminal prompt:
 
 ```bash
 pnpm exec wrangler d1 migrations apply zimaxx-qr --remote
 pnpm owner:create -- --remote
+pnpm user:create -- --remote --role editor --email editor@zimaxx.com --name "Editor name"
 ```
 
-The owner command requires a password of at least 12 characters, hashes it
+The user command requires a password of at least 12 characters, hashes it
 locally with PBKDF2-SHA256 using Cloudflare's supported 100,000 iterations, and
 sends only the resulting SQL values to D1. Running it again for the same email
-updates that owner's password without creating a duplicate. The
+updates that user's name, password, role, and active status without creating a duplicate. The
 plain-text password is neither written to the repository nor displayed in the
 terminal.
 
@@ -97,7 +99,7 @@ pnpm run build
 ```
 
 The tests cover URL/slug/contrast policy, password verification, migration
-integrity, real QR decoding, owner creation/edit/export/scan/disable, analytics,
+integrity, real QR decoding, team roles, creation/edit/export/scan/disable, analytics,
 and responsive desktop/mobile journeys.
 
 ## Security and privacy decisions
@@ -105,7 +107,7 @@ and responsive desktop/mobile journeys.
 - Only `http` and `https` destinations are accepted; same-origin redirect loops
   are rejected.
 - Logo uploads are PNG-only, validated by decoding, capped at 1 MB and 2048 px.
-- All mutations require an authenticated owner, same-origin request, CSRF token,
+- All mutations require an authenticated team user, same-origin request, CSRF token,
   and idempotency key; edits also use optimistic version checks.
 - Session cookies are HttpOnly, SameSite=Lax, and Secure on HTTPS.
 - Scan events store time, code, calendar date, and coarse device category only.
@@ -117,7 +119,7 @@ and responsive desktop/mobile journeys.
 
 ## Scope boundaries
 
-The first release intentionally omits teams, billing, bulk import, custom
+The first release intentionally omits self-service user management, billing, bulk import, custom
 domains, scheduled destination changes, precise geolocation, webhooks, and
 third-party analytics or custom logo uploads. SVG and PNG exports always use
 the integrated Zimaxx symbol. These constraints keep the permanent-link

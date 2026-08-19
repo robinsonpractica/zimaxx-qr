@@ -10,6 +10,7 @@
     "db:migrate": "wrangler d1 migrations apply zimaxx-qr --local",
     "db:seed": "wrangler d1 execute zimaxx-qr --local --file=./db/seed.sql",
     "owner:create": "node scripts/create-owner.mjs",
+    "user:create": "node scripts/create-owner.mjs",
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"

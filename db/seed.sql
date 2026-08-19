@@ -1,7 +1,7 @@
-INSERT OR IGNORE INTO users(id,email,display_name,password_salt,password_hash,status,created_at,updated_at) VALUES
-('usr_maya','demo@zimmax.test','Zimmax Team','squarecode-demo-salt','6adb01a35bd11730fe0bcc8b923a1f74c4d2fe9427bb9600c505234130bb9f6f','active','2026-08-01T12:00:00.000Z','2026-08-01T12:00:00.000Z'),
-('usr_noah','qa@zimmax.test','Zimmax QA','squarecode-demo-salt','6adb01a35bd11730fe0bcc8b923a1f74c4d2fe9427bb9600c505234130bb9f6f','active','2026-08-01T12:00:00.000Z','2026-08-01T12:00:00.000Z')
-ON CONFLICT(email) DO UPDATE SET password_salt=excluded.password_salt,password_hash=excluded.password_hash,status='active',updated_at=excluded.updated_at;
+INSERT OR IGNORE INTO users(id,email,display_name,password_salt,password_hash,status,role,created_at,updated_at) VALUES
+('usr_maya','demo@zimmax.test','Zimmax Team','squarecode-demo-salt','6adb01a35bd11730fe0bcc8b923a1f74c4d2fe9427bb9600c505234130bb9f6f','active','admin','2026-08-01T12:00:00.000Z','2026-08-01T12:00:00.000Z'),
+('usr_noah','qa@zimmax.test','Zimmax QA','squarecode-demo-salt','6adb01a35bd11730fe0bcc8b923a1f74c4d2fe9427bb9600c505234130bb9f6f','active','editor','2026-08-01T12:00:00.000Z','2026-08-01T12:00:00.000Z')
+ON CONFLICT(email) DO UPDATE SET password_salt=excluded.password_salt,password_hash=excluded.password_hash,status='active',role=excluded.role,updated_at=excluded.updated_at;
 
 INSERT OR IGNORE INTO codes(id,owner_id,name,slug,foreground,background,error_correction,status,version,created_at,updated_at) VALUES
 ('code_menu','usr_maya','Digital catalogue','spring-menu','#17170F','#FFFFFF','Q','active',1,'2026-08-01T12:00:00.000Z','2026-08-17T12:00:00.000Z'),

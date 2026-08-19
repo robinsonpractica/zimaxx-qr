@@ -1,5 +1,5 @@
 {
   "project_id": "appgprj_6a846802fc6c819188e718ddcd993d63",
   "d1": { "DB": { "migrationsDirectory": "db/migrations" } },
-  "r2": { "LOGOS": {} }
+  "r2": null
 }
